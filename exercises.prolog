@@ -130,27 +130,46 @@ anypathL(G, N1, N2, L, R) :- anypath(G, N1, N2, R), length(R, N), N < L.
 % Should find a representation for the Table
 % Calling the predicate should give all results
 
-is_player(o).
-is_player(x).
+% Table representation:  [[_,_,_],[x,o,x],[o,x,o]]
+% ------------------------------------------------------
+placed(X) :- X == o.
+placed(X) :- X == x.
+free(X) :- X \== o, X \== x.
 
+% R: row, P: player
+left([P, _, _], P) :- placed(P). 
+middle([_, P, _], P) :- placed(P).
+right([_, _, P], P) :- placed(P).
 
-has_won([[X, _, _], [X, _, _], [X, _, _]], X) :- !. 
-has_won([[_, X, _], [_, X, _], [_, X, _]], X) :- !.
-has_won([[_, _, X], [_, _, X], [_, _, X]], X) :- !.
+same(X, Y, Z) :- X == Y, Y == Z.
 
-has_won([[_, _, _], [_, _, _], [X, X, X]], X) :- !.
-has_won([[_, _, _], [X, X, X], [_, _, _]], X) :- !.
-has_won([[X, X, X], [_, _, _], [_, _, _]], X) :- !.
+result([U, M, B], win(X)) :- left(U, X), left(M, Y), left(B, Z), same(X, Y, Z), !. 
+result([U, M, B], win(X)) :- middle(U, X), middle(M, Y), middle(B, Z), same(X, Y, Z),!.
+result([U, M, B], win(X)) :- right(U, X), right(M, Y), right(B, Z), same(X, Y, Z),!.
 
-has_won([[_, _, X], [_, X, _], [X, _, _]], X) :- !.
-has_won([[X, _, _], [_, X, _], [_, _, X]], X) :- !.
+result([U, M, B], win(X)) :- left(B, X), middle(B, Y), right(B, Z), same(X, Y, Z),!.
+result([U, M, B], win(X)) :- left(M, X), middle(M, Y), right(M, Z), same(X, Y, Z),!.
+result([U, M, B], win(X)) :- left(U, X), middle(U, Y), right(U, Z), same(X, Y, Z),!.
 
+result([U, M, B], win(X)) :- right(U, X), middle(M, Y), left(B, Z), same(X, Y, Z),!.
+result([U, M, B], win(X)) :- left(U, X), middle(M, Y), right(B, Z), same(X, Y, Z),!.
 
-next(T, P, R, N).
+full([A, B, C]) :- placed(A), placed(B), placed(C).
+result([U, M, B], even) :- full(U), full(M), full(B), !.
+result(T, nothing). 
 
+next([A, B, C], P, [P, B, C]) :- atom(A), free(A).
+next([A, B, C], P, [A, P, C]) :- atom(B), free(B).
+next([A, B, C], P, [A, B, P]) :- atom(C), free(C).
 
+next([[A, B, C], [D, E, F]], P, [P, B, C]) :- placed(D), free(A).
+next([[A, B, C], [D, E, F]], P, [A, P, C]) :- placed(E), free(B).
+next([[A, B, C], [D, E, F]], P, [A, B, P]) :- placed(F), free(C). 
 
+% U: Upper, M: Middle, B: bottom
+next([U, M, B], P, R, [U, M, N]) :- next(B, P, N), result([U, M, N], R).
+next([U, M, B], P, R, [U, N, B]) :- next([M, B], P, N), result([U, N, B], R).
+next([U, M, B], P, R, [N, M, B]) :- next([U, M], P, N), result([N, M, B], R). 
 
-
-
-
+% game(@Table,@Player,-Result,-TableList)
+% TableList is the sequence of tables until Result win(x), win(o) or even
