@@ -173,3 +173,11 @@ next([U, M, B], P, R, [N, M, B]) :- next([U, M], P, N), result([N, M, B], R).
 
 % game(@Table,@Player,-Result,-TableList)
 % TableList is the sequence of tables until Result win(x), win(o) or even
+other(X, o) :- X == x.
+other(X, x) :- X == o.
+
+game(T, P, win(X), [T]) :- placed(X), !.
+game(T, P, even, [T]) :- result(T, even).
+
+game(T, P, R, [N|L]) :- next(T, P, R, N), other(P, X), game(N, X, R, L).
+
