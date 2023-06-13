@@ -144,23 +144,23 @@ right([_, _, P], P) :- placed(P).
 same(X, Y, Z) :- X == Y, Y == Z.
 
 result([U, M, B], win(X)) :- left(U, X), left(M, Y), left(B, Z), same(X, Y, Z), !. 
-result([U, M, B], win(X)) :- middle(U, X), middle(M, Y), middle(B, Z), same(X, Y, Z),!.
-result([U, M, B], win(X)) :- right(U, X), right(M, Y), right(B, Z), same(X, Y, Z),!.
+result([U, M, B], win(X)) :- middle(U, X), middle(M, Y), middle(B, Z), same(X, Y, Z), !.
+result([U, M, B], win(X)) :- right(U, X), right(M, Y), right(B, Z), same(X, Y, Z), !.
 
-result([U, M, B], win(X)) :- left(B, X), middle(B, Y), right(B, Z), same(X, Y, Z),!.
-result([U, M, B], win(X)) :- left(M, X), middle(M, Y), right(M, Z), same(X, Y, Z),!.
-result([U, M, B], win(X)) :- left(U, X), middle(U, Y), right(U, Z), same(X, Y, Z),!.
+result([U, M, B], win(X)) :- left(B, X), middle(B, Y), right(B, Z), same(X, Y, Z), !.
+result([U, M, B], win(X)) :- left(M, X), middle(M, Y), right(M, Z), same(X, Y, Z), !.
+result([U, M, B], win(X)) :- left(U, X), middle(U, Y), right(U, Z), same(X, Y, Z), !.
 
-result([U, M, B], win(X)) :- right(U, X), middle(M, Y), left(B, Z), same(X, Y, Z),!.
-result([U, M, B], win(X)) :- left(U, X), middle(M, Y), right(B, Z), same(X, Y, Z),!.
+result([U, M, B], win(X)) :- right(U, X), middle(M, Y), left(B, Z), same(X, Y, Z), !.
+result([U, M, B], win(X)) :- left(U, X), middle(M, Y), right(B, Z), same(X, Y, Z), !.
 
 full([A, B, C]) :- placed(A), placed(B), placed(C).
 result([U, M, B], even) :- full(U), full(M), full(B), !.
 result(T, nothing). 
 
-next([A, B, C], P, [P, B, C]) :- atom(A), free(A).
-next([A, B, C], P, [A, P, C]) :- atom(B), free(B).
-next([A, B, C], P, [A, B, P]) :- atom(C), free(C).
+next([A, B, C], P, [P, B, C]) :- var(A), free(A).
+next([A, B, C], P, [A, P, C]) :- var(B), free(B).
+next([A, B, C], P, [A, B, P]) :- var(C), free(C).
 
 next([[A, B, C], [D, E, F]], P, [P, B, C]) :- placed(D), free(A).
 next([[A, B, C], [D, E, F]], P, [A, P, C]) :- placed(E), free(B).
@@ -173,11 +173,9 @@ next([U, M, B], P, R, [N, M, B]) :- next([U, M], P, N), result([N, M, B], R).
 
 % game(@Table,@Player,-Result,-TableList)
 % TableList is the sequence of tables until Result win(x), win(o) or even
-other(X, o) :- X == x.
-other(X, x) :- X == o.
+other(X, o) :- X = x.
+other(X, x) :- X = o.
 
-game(T, P, win(X), [T]) :- placed(X), !.
-game(T, P, even, [T]) :- result(T, even).
-
-game(T, P, R, [N|L]) :- next(T, P, R, N), other(P, X), game(N, X, R, L).
-
+game(T, P, Y, [T]) :- result(T, Y), Y = win(X), !.
+game(T, P, even, [T]) :- result(T, X), X = even.
+game(T, P, R, [N|L]) :- next(T, P, O, N), other(P, X), game(N, X, R, L).
